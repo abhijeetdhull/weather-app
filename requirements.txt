@@ -1,6 +1,5 @@
 Flask
 requests
-mysql-connector-python
 apscheduler
 gunicorn
 psycopg2-binary

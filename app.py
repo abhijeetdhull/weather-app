@@ -5,7 +5,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 import os
 
 app = Flask(__name__)
-API_KEY = os.getenv("API_KEY")  # now read from environment
+API_KEY = os.getenv("API_KEY")  # read from environment
 
 DB_CONFIG = dict(
     host=os.getenv("DB_HOST"),
@@ -46,7 +46,29 @@ scheduler = BackgroundScheduler()
 scheduler.add_job(collect_weather, 'interval', days=1)
 scheduler.start()
 
-HTML_TEMPLATE = """ ... (unchanged HTML for index page) ... """
+# --- Updated HTML for index page ---
+HTML_TEMPLATE = """
+<!DOCTYPE html>
+<html>
+<head><title>Weather App</title></head>
+<body>
+    <h1>Weather Search</h1>
+    <form method="post">
+        <input type="text" name="city" placeholder="Enter city">
+        <button type="submit">Get Weather</button>
+    </form>
+    {% if w %}
+        <h2>Weather for {{w.city}}</h2>
+        <p>Temperature: {{w.temp}} °C</p>
+        <p>Humidity: {{w.humidity}}%</p>
+        <p>Pressure: {{w.pressure}} hPa</p>
+        <p>Wind Speed: {{w.wind}} m/s</p>
+    {% endif %}
+    <p><a href="/history">View History</a></p>
+    <p><a href="/history_chart">Multi-City Chart</a></p>
+</body>
+</html>
+"""
 
 @app.route("/", methods=["GET","POST"])
 def index():
@@ -68,7 +90,22 @@ def history():
     rows = cur.fetchall()
     cur.close(); conn.close()
 
-    html = """ ... (unchanged HTML for history page) ... """
+    html = """
+    <!DOCTYPE html>
+    <html>
+    <head><title>Weather History</title></head>
+    <body>
+        <h1>Weather History</h1>
+        <table border="1">
+            <tr><th>Date</th><th>City</th><th>Temp</th><th>Humidity</th><th>Pressure</th><th>Wind</th></tr>
+            {% for d,c,t,h,p,w in rows %}
+                <tr><td>{{d}}</td><td>{{c}}</td><td>{{t}}</td><td>{{h}}</td><td>{{p}}</td><td>{{w}}</td></tr>
+            {% endfor %}
+        </table>
+        <p><a href="/">Back</a></p>
+    </body>
+    </html>
+    """
     return render_template_string(html, rows=rows)
 
 @app.route("/forecast/<city>")
