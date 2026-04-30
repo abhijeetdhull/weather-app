@@ -1,8 +1,21 @@
 import requests
-import mysql.connector
+import psycopg2
 from datetime import datetime
+import os
 
-API_KEY = "2f43bef29fe13608bb8ecd38a0320c8b"
+# Read API key and DB config from environment variables
+API_KEY = os.getenv("API_KEY")
+
+DB_CONFIG = dict(
+    host=os.getenv("DB_HOST"),
+    database=os.getenv("DB_NAME"),
+    user=os.getenv("DB_USER"),
+    password=os.getenv("DB_PASSWORD")
+)
+
+def get_connection():
+    return psycopg2.connect(**DB_CONFIG)
+
 city = "Delhi"
 url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={API_KEY}&units=metric"
 response = requests.get(url)
@@ -16,12 +29,7 @@ if response.status_code == 200:
     date = datetime.now().strftime("%Y-%m-%d")
 
     try:
-        conn = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="your_password",
-            database="weather_app"
-        )
+        conn = get_connection()
         cursor = conn.cursor()
 
         print("Inserting:", date, city, temp, humidity, pressure, wind)
